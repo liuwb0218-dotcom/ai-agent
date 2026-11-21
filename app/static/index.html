@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI 智能客服 Agent</title>
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+  <!-- 背景装饰 -->
+  <div class="bg-decor" aria-hidden="true">
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+    <div class="orb orb-3"></div>
+  </div>
+
+  <!-- 认证视图（登录/注册） -->
+  <div class="auth-view" id="authView">
+    <div class="auth-card">
+      <div class="auth-logo">AI</div>
+      <h2 id="authTitle">登录</h2>
+      <form id="authForm" autocomplete="on">
+        <input id="authUsername" placeholder="用户名（3-50 位字母数字下划线）" autocomplete="username" required>
+        <input id="authPassword" type="password" placeholder="密码（至少 6 位）" autocomplete="current-password" required>
+        <div id="authExtra" hidden>
+          <input id="authNickname" placeholder="昵称（选填）" autocomplete="nickname">
+          <input id="authEmail" type="email" placeholder="邮箱（选填）" autocomplete="email">
+        </div>
+        <div class="form-error" id="authError" hidden></div>
+        <button type="submit" class="btn btn-primary btn-block" id="authSubmit">登录</button>
+      </form>
+      <p class="auth-switch">还没有账号？<a href="#" id="authSwitchLink">去注册</a></p>
+    </div>
+  </div>
+
+  <!-- 聊天主界面 -->
+  <div class="app-shell" id="chatView" hidden>
+    <!-- 顶部栏 -->
+    <header class="topbar">
+      <div class="brand">
+        <div class="brand-logo">AI</div>
+        <div class="brand-text">
+          <h1>智能客服 Agent</h1>
+          <span class="brand-sub">Function Calling · 多轮对话 · 意图识别</span>
+        </div>
+      </div>
+      <div class="topbar-actions">
+        <span class="session-chip" id="sessionChip" title="当前会话 ID">会话: --</span>
+        <button class="btn btn-ghost" id="ordersBtn" title="查看我的订单与下单">📦 我的订单</button>
+        <button class="btn btn-ghost" id="historyBtn" title="查看当前会话历史">历史</button>
+        <button class="btn btn-danger" id="clearTopBtn" title="清空当前会话">🗑 清空</button>
+        <button class="btn btn-ghost" id="newBtn" title="新建会话">＋ 新会话</button>
+        <button class="btn btn-ghost" id="themeBtn" title="切换深色/浅色主题">◐</button>
+        <div class="user-menu">
+          <button class="btn user-btn" id="userBtn" title="账户菜单">
+            <img class="user-avatar" id="userAvatar" alt="头像" hidden>
+            <span id="userNickname">--</span>
+          </button>
+          <div class="user-dropdown" id="userDropdown" hidden>
+            <button class="dd-item" id="profileBtn">👤 个人资料</button>
+            <button class="dd-item" id="adminBtn" hidden>🛠 管理后台</button>
+            <button class="dd-item" id="logoutBtn">🚪 退出登录</button>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- 主体：聊天区 -->
+    <main class="chat-main">
+      <div class="welcome" id="welcome">
+        <div class="welcome-icon">🤖</div>
+        <h2>你好，我是智能客服助手</h2>
+        <p>我可以帮你查天气、查库存、查订单，还能做四则运算</p>
+        <div class="suggestions">
+          <button class="suggestion-chip" data-msg="北京今天天气怎么样？">🌤 查天气</button>
+          <button class="suggestion-chip" data-msg="1001 号商品还有多少库存？">📦 查库存</button>
+          <button class="suggestion-chip" data-msg="帮我查一下订单 20260811001 的状态">🚚 查订单</button>
+          <button class="suggestion-chip" data-msg="计算 (1+2)*3 等于多少">🧮 计算器</button>
+        </div>
+      </div>
+      <div class="messages" id="messages" hidden></div>
+    </main>
+
+    <!-- 底部输入区 -->
+    <footer class="composer">
+      <div class="composer-box">
+        <textarea id="input" rows="1" placeholder="输入消息，Enter 发送，Shift+Enter 换行…"></textarea>
+        <button class="btn btn-primary" id="sendBtn" title="发送">发送 ↵</button>
+      </div>
+      <p class="composer-hint">AI 生成内容仅供学习演示 · 数据为模拟数据</p>
+    </footer>
+  </div>
+
+  <!-- 历史弹层 -->
+  <div class="modal-mask" id="historyModal" hidden>
+    <div class="modal">
+      <div class="modal-head">
+        <button class="btn btn-ghost" id="historyBack" hidden>← 返回</button>
+        <h3>会话历史</h3>
+        <button class="btn btn-ghost" id="modalClose">✕</button>
+      </div>
+      <div class="modal-body" id="historyBody"></div>
+      <div class="modal-foot">
+        <button class="btn btn-danger" id="clearBtn">清空当前会话</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 个人资料弹层 -->
+  <div class="modal-mask" id="profileModal" hidden>
+    <div class="modal modal-narrow">
+      <div class="modal-head">
+        <h3>个人资料</h3>
+        <button class="btn btn-ghost" id="profileClose">✕</button>
+      </div>
+      <div class="modal-body profile-body">
+        <div class="profile-avatar-row">
+          <img class="profile-avatar" id="profileAvatar" alt="头像">
+          <label class="btn" for="avatarFile">上传头像<input type="file" id="avatarFile" accept="image/jpeg,image/png,image/gif,image/webp" hidden></label>
+        </div>
+        <div class="form-row"><label>用户名</label><input id="profileUsername" disabled></div>
+        <div class="form-row"><label>昵称</label><input id="profileNickname" maxlength="50"></div>
+        <div class="form-row"><label>邮箱</label><input id="profileEmail" type="email"></div>
+        <div class="form-error" id="profileError" hidden></div>
+        <button class="btn btn-primary btn-block" id="profileSave">保存资料</button>
+        <hr class="profile-divider">
+        <h4>修改密码</h4>
+        <div class="form-row"><label>原密码</label><input type="password" id="pwdOld" autocomplete="current-password"></div>
+        <div class="form-row"><label>新密码</label><input type="password" id="pwdNew" autocomplete="new-password"></div>
+        <div class="form-error" id="pwdError" hidden></div>
+        <button class="btn btn-block" id="pwdSave">修改密码</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 我的订单弹层 -->
+  <div class="modal-mask" id="ordersModal" hidden>
+    <div class="modal modal-orders">
+      <div class="modal-head">
+        <h3>我的订单</h3>
+        <button class="btn btn-ghost" id="ordersClose">✕</button>
+      </div>
+      <div class="modal-body" id="ordersBody"></div>
+      <div class="modal-foot">
+        <button class="btn btn-primary" id="openOrderFormBtn">🛒 下单</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 下单弹层 -->
+  <div class="modal-mask" id="orderFormModal" hidden>
+    <div class="modal modal-narrow">
+      <div class="modal-head">
+        <h3>下单</h3>
+        <button class="btn btn-ghost" id="orderFormClose">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-row"><label>商品</label><select id="orderProductSelect" class="order-select"></select></div>
+        <div class="form-row"><label>数量</label><input id="orderQuantity" type="number" min="1" max="999" value="1"></div>
+        <div class="form-error" id="orderFormError" hidden></div>
+        <button class="btn btn-primary btn-block" id="orderSubmit">确认下单</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>
