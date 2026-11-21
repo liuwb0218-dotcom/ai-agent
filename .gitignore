@@ -15,11 +15,11 @@ venv/
 .idea/
 .vscode/
 
-# 运行时产物
-logs/
+# 运行时产物（仅限仓库根目录，避免误伤 app/models 等源码目录）
+/logs/
 *.log
-uploads/
-models/
+/uploads/
+/models/
 
 # 知识库索引（可由 documents 重新生成）
 knowledge/faiss.index
